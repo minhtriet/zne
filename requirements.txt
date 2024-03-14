@@ -1,0 +1,7 @@
+pennylane
+qiskit
+pennylane_qiskit
+mitiq
+qiskit_ibm_provider
+jupyterlab
+ply
