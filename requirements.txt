@@ -1,7 +1,6 @@
-pennylane
-qiskit
-pennylane_qiskit
-mitiq
-qiskit_ibm_provider
-jupyterlab
-ply
+pennylane==0.35.1
+qiskit==1.0.2
+pennylane_qiskit==0.35.1
+mitiq==0.34.0
+qiskit_ibm_provider==0.10.0
+ply==3.11
