@@ -1,4 +1,5 @@
 import pennylane as qml
+import pennylane.numpy as np
 import copy
 from typing import List
 
@@ -29,8 +30,14 @@ def unitary_fold(circuit, scale_factor: int):
     return ops, circuit.tape.measurements
 
 
-@qml.qnode(dev)
-def circuit_from_ops(operations: List, measurements: List):
-    for op in operations:
-        qml.apply(op)
-    return qml.apply(measurements[0])
+def linear_extrapolation(x, y):
+    opt_params = np.polyfit(x, y, 1)
+    return opt_params[-1]
+
+def polinomial_extraplation(x, y, order):
+    opt_params = np.polyfit(x, y, order)
+    return opt_params[-1]
+
+def exponential_extraplation(x, y):
+    opt_params = np.polyfit(x, np.log(y), 1)
+    return np.exp(opt_params[-1])
