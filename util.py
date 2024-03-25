@@ -1,9 +1,24 @@
-import pennylane as qml
-import pennylane.numpy as np
 import copy
 from typing import List
 
+import pennylane as qml
+import pennylane.numpy as np
+
+
 def unitary_fold(circuit, scale_factor: int):
+    """
+    Fold a quantum circuit by applying its unitary evolution multiple times to simulate a larger unitary evolution.
+
+    Args:
+        circuit (qml.QNode): The quantum circuit to be folded.
+        scale_factor (int): The number of times to fold the circuit. The resulting circuit simulates the unitary evolution (U^H U)^scale_factor,
+            where U is the unitary evolution represented by the circuit.
+
+    Returns:
+        tuple: A tuple containing two elements:
+            - list: A list of operations representing the folded circuit.
+            - list: A list of measurements in the original circuit.
+    """
     # original ops
     circuit()
     original_ops = circuit.tape.operations
@@ -26,10 +41,22 @@ def unitary_fold(circuit, scale_factor: int):
         for i in last_layers:
             ops.append(op)
 
-            # Return list of op to create the circuit
+    # Return list of op to create the circuit
     return ops, circuit.tape.measurements
 
+
 def circuit_from_ops(dev, operations: List, measurements: List):
+    """
+     Create a quantum circuit from a list of operations and measurements.
+
+    Args:
+        dev (qml.Device): The PennyLane device to be used for circuit execution.
+        operations (list): A list of PennyLane operations representing the quantum gates and measurements to be applied in the circuit.
+        measurements (list): A list of PennyLane measurements to be applied in the circuit.
+
+    Returns:
+        qml.QNode: A PennyLane QNode representing the quantum circuit created from the provided operations and measurements.
+    """
 
     @qml.qnode(dev)
     def create_circuit():
@@ -39,20 +66,74 @@ def circuit_from_ops(dev, operations: List, measurements: List):
 
     return create_circuit()
 
+
 def create_record(extrapolation_type, noise_level, scale_factor, value):
-    return { 'scale_factor': scale_factor, 'noise_strength': noise_level, 
-            'extrapolation_type': extrapolation_type, 
+    """
+    Create a record dictionary containing information about a simulation result.
+
+    Args:
+        extrapolation_type (str): The type of extrapolation used in the simulation.
+        noise_level (float): The strength of noise added to the simulation.
+        scale_factor (int): The scale factor used in the simulation.
+        value (float): The resulting value obtained from the simulation.
+
+    Returns:
+        dict: A dictionary containing the simulation record with the following keys:
+            - 'extrapolation_type' (str): The type of extrapolation used.
+            - 'noise_strength' (float): The strength of noise added.
+            - 'scale_factor' (int): The scale factor used.
+            - 'value' (float): The resulting value obtained from the simulation.
+    """
+    return {'scale_factor': scale_factor, 'noise_strength': noise_level,
+            'extrapolation_type': extrapolation_type,
             'value': value}
 
+
 def linear_extrapolation(x, y):
+    """
+        Perform linear extrapolation on a set of data points.
+
+        Args:
+            x (array_like): The x-coordinates of the data points.
+            y (array_like): The y-coordinates of the data points.
+
+        Returns:
+            float: The extrapolated value obtained by linearly extrapolating the data points
+    """
     opt_params = np.polyfit(x, y, 1)
     return opt_params[-1]
 
+
 def polynomial_extraplation(x, y, order):
+    """
+    Perform polynomial extrapolation on a set of data points.
+
+    This function calculates the coefficients of the polynomial function that best fits the given data points (x, y)
+    with the specified order, and returns the extrapolated value at x = infinity, which corresponds to the y-intercept
+    of the polynomial fit.
+
+    Args:
+        x (array_like): The x-coordinates of the data points.
+        y (array_like): The y-coordinates of the data points.
+        order (int): The degree of the polynomial
+
+    Returns:
+        float: The extrapolated value obtained by extrapolating the polynomial fit to x = infinity.
+    """
     opt_params = np.polyfit(x, y, order)
     return opt_params[-1]
 
+
 def exponential_extraplation(x, y):
-    # opt_params = np.polyfit(x, np.log(y), 1)
+    """
+    Perform exponential extrapolation on a set of data points.
+
+    Args:
+        x (array_like): The x-coordinates of the data points.
+        y (array_like): The y-coordinates of the data points.
+
+    Returns:
+        float: The extrapolated value obtained
+    """
     opt_params = np.polyfit(np.log(x), y, 1)
     return np.exp(opt_params[-1])
