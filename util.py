@@ -29,12 +29,26 @@ def unitary_fold(circuit, scale_factor: int):
             # Return list of op to create the circuit
     return ops, circuit.tape.measurements
 
+def circuit_from_ops(dev, operations: List, measurements: List):
+
+    @qml.qnode(dev)
+    def create_circuit():
+        for op in operations:
+            qml.apply(op)
+        return qml.apply(measurements[0])
+
+    return create_circuit()
+
+def create_record(extrapolation_type, noise_level, scale_factor, value):
+    return { 'scale_factor': scale_factor, 'noise_strength': noise_level, 
+            'extrapolation_type': extrapolation_type, 
+            'value': value}
 
 def linear_extrapolation(x, y):
     opt_params = np.polyfit(x, y, 1)
     return opt_params[-1]
 
-def polinomial_extraplation(x, y, order):
+def polynomial_extraplation(x, y, order):
     opt_params = np.polyfit(x, y, order)
     return opt_params[-1]
 
