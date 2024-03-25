@@ -53,5 +53,6 @@ def polynomial_extraplation(x, y, order):
     return opt_params[-1]
 
 def exponential_extraplation(x, y):
-    opt_params = np.polyfit(x, np.log(y), 1)
+    # opt_params = np.polyfit(x, np.log(y), 1)
+    opt_params = np.polyfit(np.log(x), y, 1)
     return np.exp(opt_params[-1])
