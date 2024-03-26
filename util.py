@@ -7,14 +7,24 @@ import pennylane.numpy as np
 
 def circuit_hamiltonian():
     """
-    Calculate the Hamiltonian of a system consists of two magnets
     """
-    qml.BasisState([1, 0, 0, 1, 0], wires=range(5))
-    obs = [qml.PauliZ(0) @ qml.PauliZ(1), qml.PauliZ(1) @ qml.PauliZ(2),
-           qml.PauliZ(1) @ qml.PauliZ(3), qml.PauliZ(3) @ qml.PauliZ(4)]
-    coeffs = [1 for _ in obs]
-    H = qml.Hamiltonian(coeffs, obs)
-    return qml.expval(H)
+    qml.RY(-1.5707963267948966, wires=[0])
+    qml.adjoint(qml.SX(wires=[1]))
+    qml.adjoint(qml.SX(wires=[0]))
+    qml.RY(-1.5707963267948966, wires=[1])
+    qml.RY(1.5707963267948966, wires=[0])
+    qml.CZ(wires=[0, 1])
+    qml.adjoint(qml.SX(wires=[0]))
+    qml.RY(1.5707963267948966, wires=[1])
+    qml.RY(-1.5707963267948966, wires=[0])
+    qml.SX(wires=[1])
+    qml.SX(wires=[0])
+    qml.RY(-1.5707963267948966, wires=[1])
+    qml.RY(0.0, wires=[0])
+    qml.CZ(wires=[0, 1])
+    qml.RX(0.0, wires=[0])
+    qml.RY(1.5707963267948966, wires=[1])
+    return qml.expval(qml.PauliZ(0) @ qml.PauliZ(1))
 
 
 def circuit_bell_state():
@@ -84,7 +94,7 @@ def circuit_from_ops(dev, operations: List, measurements: List):
         for op in operations:
             qml.apply(op)
         return qml.apply(measurements[0])
-
+    print(qml.draw(create_circuit)())
     return create_circuit()
 
 

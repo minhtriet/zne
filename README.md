@@ -22,3 +22,6 @@ I tried to run the IBM but the queueing is quite long. I am based in EU but some
 [Notebook (older than this version)](https://lab.quantum.ibm.com/user/654e84109e53ed4e26de133b/lab/tree/zne.ipynb)
 
 [Job](https://quantum.ibm.com/jobs/cqyb5sqqwzy0008kcp90)
+
+## Exponential extrapolation
+Eventhough it is implemented, none of the circuits I tried can make exponential extrapolation converge. It is also the case with the reference implementation, which always ask me to switch to linear extrapolation instead.
