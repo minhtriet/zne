@@ -5,6 +5,27 @@ import pennylane as qml
 import pennylane.numpy as np
 
 
+def circuit_hamiltonian():
+    """
+    Calculate the Hamiltonian of a system consists of two magnets
+    """
+    qml.BasisState([1, 0, 0, 1, 0], wires=range(5))
+    obs = [qml.PauliZ(0) @ qml.PauliZ(1), qml.PauliZ(1) @ qml.PauliZ(2),
+           qml.PauliZ(1) @ qml.PauliZ(3), qml.PauliZ(3) @ qml.PauliZ(4)]
+    coeffs = [1 for _ in obs]
+    H = qml.Hamiltonian(coeffs, obs)
+    return qml.expval(H)
+
+
+def circuit_bell_state():
+    """
+    circuit preparing a Bell state
+    """
+    qml.Hadamard(wires=0)
+    qml.CNOT(wires=[0, 1])
+    return qml.expval(qml.PauliZ(0) @ qml.PauliZ(1))
+
+
 def unitary_fold(circuit, scale_factor: int):
     """
     Fold a quantum circuit by applying its unitary evolution multiple times to simulate a larger unitary evolution.
@@ -104,7 +125,7 @@ def linear_extrapolation(x, y):
     return opt_params[-1]
 
 
-def polynomial_extraplation(x, y, order):
+def polynomial_extrapolation(x, y, order):
     """
     Perform polynomial extrapolation on a set of data points.
 
@@ -124,7 +145,7 @@ def polynomial_extraplation(x, y, order):
     return opt_params[-1]
 
 
-def exponential_extraplation(x, y):
+def exponential_extrapolation(x, y):
     """
     Perform exponential extrapolation on a set of data points.
 
@@ -135,5 +156,15 @@ def exponential_extraplation(x, y):
     Returns:
         float: The extrapolated value obtained
     """
-    opt_params = np.polyfit(np.log(x), y, 1)
+    opt_params = np.polyfit(-np.array(x), np.log(y), 1)
     return np.exp(opt_params[-1])
+
+
+def get_reference_extrapolation(device_circuit, max_scale_factor, fold_method, extrapolate_method):
+    error_mitigated_device_circuit = qml.transforms.mitigate_with_zne(
+        device_circuit,
+        range(1, max_scale_factor),
+        folding=fold_method,
+        extrapolate=extrapolate_method,
+    )
+    return error_mitigated_device_circuit
