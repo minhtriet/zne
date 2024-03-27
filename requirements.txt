@@ -2,4 +2,3 @@ qiskit==0.45.3
 pennylane==0.34
 pennylane_qiskit==0.35.1
 mitiq==0.34.0
-# qiskit_ibm_provider==0.10.0

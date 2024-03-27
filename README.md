@@ -1,14 +1,10 @@
 # Zero noise extrapolation challenge
 
-Project structure
-```
-zne
-├── zne.ipynb     # see section Notebook
-└── util.py       # see section Util
-```
+## How to run
+Install packages from `requirements.txt` and `jupyterlab`.
 
 ## Notebook
-Readers are welcome to read the notebook first. It contains the experimentis with the implementation in `util.py`.
+Readers are welcome to read the notebook `zne.ipynb` first. It contains the experimentis with the implementation in `util.py`.
 Its first cell has all the config and comments. One may want to change this before running the notebook, but the config leaving there already works.
 
 The implementation of the global folding and the extrapolation as requested by the task are in `utils.py`.
