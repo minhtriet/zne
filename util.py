@@ -6,25 +6,10 @@ import pennylane.numpy as np
 
 
 def circuit_hamiltonian():
-    """
-    """
-    qml.RY(-1.5707963267948966, wires=[0])
-    qml.adjoint(qml.SX(wires=[1]))
-    qml.adjoint(qml.SX(wires=[0]))
-    qml.RY(-1.5707963267948966, wires=[1])
-    qml.RY(1.5707963267948966, wires=[0])
-    qml.CZ(wires=[0, 1])
-    qml.adjoint(qml.SX(wires=[0]))
-    qml.RY(1.5707963267948966, wires=[1])
-    qml.RY(-1.5707963267948966, wires=[0])
-    qml.SX(wires=[1])
-    qml.SX(wires=[0])
-    qml.RY(-1.5707963267948966, wires=[1])
-    qml.RY(0.0, wires=[0])
-    qml.CZ(wires=[0, 1])
-    qml.RX(0.0, wires=[0])
-    qml.RY(1.5707963267948966, wires=[1])
-    return qml.expval(qml.PauliZ(0) @ qml.PauliZ(1))
+    qml.CNOT([0,1])
+    qml.RZ(np.pi/3,1)
+    qml.CNOT([0,1])
+    return qml.expval(qml.PauliZ(1))
 
 
 def circuit_bell_state():
@@ -69,7 +54,7 @@ def unitary_fold(circuit, scale_factor: int):
         last_layers = original_ops[-s:]
         for op in last_layers[::-1]:
             ops.append(qml.adjoint(copy.copy(op)))
-        for i in last_layers:
+        for op in last_layers:
             ops.append(op)
 
     # Return list of op to create the circuit
@@ -94,7 +79,6 @@ def circuit_from_ops(dev, operations: List, measurements: List):
         for op in operations:
             qml.apply(op)
         return qml.apply(measurements[0])
-    print(qml.draw(create_circuit)())
     return create_circuit()
 
 
