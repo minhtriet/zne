@@ -1,8 +1,17 @@
 import copy
-from typing import List
+from typing import List, Optional
 
 import pennylane as qml
 import pennylane.numpy as np
+
+
+def depolarization_kraus_matrices(p=0.75):
+    # the Kraus matrices for depolarization noise
+    _K0 = np.sqrt(1 - p) * np.eye(2, dtype=complex)
+    _K1 = np.sqrt(p / 3) * np.array([[0., 1.], [1., 0.]], dtype=complex)
+    _K2 = np.sqrt(p / 3) * np.array([[0, -1j], [1j, 0]], dtype=complex)
+    _K3 = np.sqrt(p / 3) * np.array([[1, 0], [0, -1]], dtype=complex)
+    return [_K0, _K1, _K2, _K3]
 
 
 def circuit_hamiltonian():
@@ -11,6 +20,14 @@ def circuit_hamiltonian():
     qml.CNOT([0,1])
     return qml.expval(qml.PauliZ(1))
 
+
+def circuit_hamiltonian_noisy(p):
+    qml.CNOT([0,1])
+    qml.RZ(np.pi/3,1)
+    qml.CNOT([0,1])
+    qml.QubitChannel(depolarization_kraus_matrices(p), wires=0)
+    qml.QubitChannel(depolarization_kraus_matrices(p), wires=1)
+    return qml.expval(qml.PauliZ(1))
 
 def circuit_bell_state():
     """
@@ -21,7 +38,15 @@ def circuit_bell_state():
     return qml.expval(qml.PauliZ(0) @ qml.PauliZ(1))
 
 
-def unitary_fold(circuit, scale_factor: int):
+def circuit_bell_state_noisy(p):
+    qml.Hadamard(wires=0)
+    qml.CNOT(wires=[0, 1])
+    qml.QubitChannel(depolarization_kraus_matrices(p), wires=0)
+    qml.QubitChannel(depolarization_kraus_matrices(p), wires=1)
+    return qml.expval(qml.PauliZ(0) @ qml.PauliZ(1))
+
+
+def unitary_fold(circuit, scale_factor: int, noise_factor: Optional[float] = None):
     """
     Fold a quantum circuit by applying its unitary evolution multiple times to simulate a larger unitary evolution.
 
@@ -29,6 +54,7 @@ def unitary_fold(circuit, scale_factor: int):
         circuit (qml.QNode): The quantum circuit to be folded.
         scale_factor (int): The number of times to fold the circuit. The resulting circuit simulates the unitary evolution (U^H U)^scale_factor,
             where U is the unitary evolution represented by the circuit.
+        noise_factor (float): The strength of the noise
 
     Returns:
         tuple: A tuple containing two elements:
@@ -36,7 +62,10 @@ def unitary_fold(circuit, scale_factor: int):
             - list: A list of measurements in the original circuit.
     """
     # original ops
-    circuit()
+    if noise_factor is not None:
+        circuit(noise_factor)
+    else:
+        circuit()
     original_ops = circuit.tape.operations
     ops = circuit.tape.copy(copy_operations=True).operations
     n, s = divmod(scale_factor - 1, 2)
@@ -44,7 +73,10 @@ def unitary_fold(circuit, scale_factor: int):
     # For the 1st part  (U^H U)**n
     for i in range(n):
         for op in original_ops[::-1]:
-            ops.append(qml.adjoint(copy.copy(op)))
+            if type(op) != qml.ops.channel.QubitChannel:   # adjoint every operator except QubitChannel
+                ops.append(qml.adjoint(copy.copy(op)))
+            else:
+                ops.append(op)
 
         for op in original_ops:
             ops.append(op)
@@ -53,7 +85,10 @@ def unitary_fold(circuit, scale_factor: int):
     if s > 0:
         last_layers = original_ops[-s:]
         for op in last_layers[::-1]:
-            ops.append(qml.adjoint(copy.copy(op)))
+            if type(op) != qml.ops.channel.QubitChannel:   # adjoint every operator except QubitChannel
+                ops.append(qml.adjoint(copy.copy(op)))
+            else:
+                ops.append(op)
         for op in last_layers:
             ops.append(op)
 
